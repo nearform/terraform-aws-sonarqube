@@ -434,3 +434,12 @@ resource "aws_lb_listener" "sonarqube_http_listener" {
     }
   }
 }
+
+################################################################################
+# Cloudwatch Log Group
+################################################################################
+resource "aws_cloudwatch_log_group" "sonarqube_cloudwatch_lg" {
+  name              = "/aws/ecs/${var.name}"
+  retention_in_days = 90
+  tags              = var.tags
+}
