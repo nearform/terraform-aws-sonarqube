@@ -4,10 +4,18 @@ A Terraform module for deploying SonarQube on AWS as a containerized service. Th
 
 ## Features
 
-- Deploys SonarQube as a containerized service on AWS using ECS/Fargate.
-- Includes options for configuring SonarQube settings and persistent storage.
-- Built with Terraform, enabling easy reuse and modification for different environments.
+This Terraform module deploys a **SonarQube container** in an **AWS Fargate cluster** using the **AWS Graviton (ARM) architecture**. It includes the following components:
 
+- **Amazon ECS (Fargate) Cluster** – Runs the SonarQube container on AWS Graviton-based instances for cost efficiency and performance.
+- **Amazon RDS Instance** – Provides a managed PostgreSQL database for SonarQube.
+- **Amazon ECR Repository** – Stores the SonarQube Docker image. The image is automatically pulled from **Docker Hub**, tagged, and pushed to ECR to avoid **Docker Hub pull limits**.
+- **Application Load Balancer (ALB)** – Manages external access to the SonarQube instance while keeping the platform private.
+- **Amazon EFS Volumes** – Ensures persistent storage for SonarQube data.
+- **Amazon CloudWatch Log Group** – Captures logs for basic monitoring and troubleshooting.
+- **Private Deployment** – The entire infrastructure is **deployed in a private network**, with external access strictly routed through the **Application Load Balancer (ALB)**.
+
+This setup ensures a **scalable, cost-effective, and secure** SonarQube deployment in AWS. 🚀
+∫∫
 ## Requirements
 
 - Terraform v1.9
@@ -47,37 +55,53 @@ A Terraform module for deploying SonarQube on AWS as a containerized service. Th
 
 ## Examples
 
-These examples demonstrate both a basic deployment and a custom configuration with additional parameters.
-
-### Basic Usage
+### **Basic Usage**
+The following example deploys SonarQube in AWS using the Terraform module.
 
 ```hcl
 module "sonarqube" {
-  source            = "github.com/neaform/terraform-aws-sonarqube"
-  region            = "eu-wast-1"
-  instance_type     = "t3.medium"
-  sonarqube_version = "8.9.3"
-  vpc_id            = "<your-vpc-id>"
-  subnet_ids        = ["<your-subnet-id1>", "<your-subnet-id2>"]
+  source = "github.com/your-org/terraform-aws-sonarqube"
+
+  # General Configuration
+  name  = "sonarqube"
+  tags  = {
+    Environment = "dev"
+    Project     = "sonarqube"
+  }
+
+  # Networking
+  vpc_id                     = "vpc-xxxxxxxx"
+  database_subnets           = ["subnet-xxxxxx", "subnet-yyyyyy"]
+  private_subnets            = ["subnet-aaaaaa", "subnet-bbbbbb"]
+  public_subnets             = ["subnet-cccccc", "subnet-dddddd"]
+  database_subnet_group_name = "sonarqube-db-group"
+
+  # SonarQube Configuration
+  sonar_db_server          = "sonardbserver"
+  sonar_db_instance_class  = "db.t4g.micro"
+  sonar_db_storage_type    = "gp2"
+  sonar_db_name            = "sonar"
+  sonar_db_user            = "sonar"
+  sonar_port               = 9000
+  sonar_container_name     = "sonarqube"
+  sonar_image_tag          = "community"
 }
 ```
 
-### Custom Configuration
+### Customizing SonarQube Version
+
+You can specify a different version of the SonarQube Docker image by setting the sonar_image_tag variable:
 
 ```hcl
-module "sonarqube" {
-  source            = "github.com/your-org/terraform-aws-sonarqube"
-  region            = "us-west-2"
-  instance_type     = "t3.large"
-  sonarqube_version = "latest"
-  vpc_id            = "<your-vpc-id>"
-  subnet_ids        = ["<your-subnet-id1>", "<your-subnet-id2>"]
-  security_group_ids = ["<your-security-group-id>"]
-  tags = {
-    Name        = "SonarQube Deployment"
-    Environment = "Production"
-  }
-}
+sonar_image_tag = "9.9.1-community"
+```
+
+### Using a Different Database Instance
+
+If you need a larger database instance for better performance:
+
+```hcl
+sonar_db_instance_class = "db.t3.medium"
 ```
 
 ## Contributing
