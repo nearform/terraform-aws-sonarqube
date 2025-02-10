@@ -36,11 +36,14 @@ A Terraform module for deploying SonarQube on AWS as a containerized service. Th
 
 ## Outputs
 
-| Name               | Description                                         |
-|--------------------|-----------------------------------------------------|
-| `sonarqube_cluster_arn`  | The ARN of the ECS cluster where SonarQube is running |
-| `sonarqube_cluster_id`  | The ID of the ECS cluster where SonarQube is running |
-| `sonarqube_cluster_name`  | The name of the ECS cluster where SonarQube is running |
+| Name                     | Description |
+|--------------------------|-------------|
+| `sonarqube_cluster_arn`  | The Amazon Resource Name (ARN) of the ECS cluster hosting SonarQube |
+| `sonarqube_cluster_id`   | The unique identifier (ID) of the ECS cluster hosting SonarQube |
+| `sonarqube_cluster_name` | The name assigned to the ECS cluster hosting SonarQube |
+| `alb_id`                 | The unique identifier (ID) of the Application Load Balancer (ALB) managing SonarQube traffic |
+| `alb_arn`                | The Amazon Resource Name (ARN) of the Application Load Balancer (ALB) managing SonarQube traffic |
+| `alb_dns_name`           | The publicly accessible DNS name of the Application Load Balancer (ALB) for SonarQube |
 
 ## Examples
 
