@@ -41,7 +41,19 @@ variable "public_subnets" {
 variable "sonar_db_server" {
   description = "The name of the SonarQube database server"
   type        = string
-  default     = "sonarqubepgsql"
+  default     = "sonardbserver"
+}
+
+variable "sonar_db_instance_class" {
+  description = "The name of the SonarQube database server instance class"
+  type        = string
+  default     = "db.t4g.micro"
+}
+
+variable "sonar_db_storage_type" {
+  description = "The name of the SonarQube database server storage type"
+  type        = string
+  default     = "gp2"
 }
 
 variable "sonar_db_name" {
@@ -66,4 +78,9 @@ variable "sonar_container_name" {
   description = "The name of the SonarQube container"
   type        = string
   default     = "sonarqube"
+}
+
+variable "sonar_image_tag" {
+  description = "The Docker Hub tag of the SonarQube image to deploy"
+  type        = string
 }
