@@ -4,13 +4,13 @@ A Terraform module for deploying SonarQube on AWS as a containerized service. Th
 
 ## Features
 
-- Deploys SonarQube as a containerized service on AWS using ECS (Elastic Container Service).
+- Deploys SonarQube as a containerized service on AWS using ECS/Fargate.
 - Includes options for configuring SonarQube settings and persistent storage.
 - Built with Terraform, enabling easy reuse and modification for different environments.
 
 ## Requirements
 
-- Terraform vX.X.X or higher
+- Terraform v1.9
 - AWS account with necessary IAM permissions
 
 ## Inputs
@@ -18,7 +18,6 @@ A Terraform module for deploying SonarQube on AWS as a containerized service. Th
 | Name               | Description                                        | Type          | Default      | Required |
 |--------------------|----------------------------------------------------|---------------|--------------|----------|
 | `instance_type`    | EC2 instance type for SonarQube ECS task           | `string`      | `t2.medium`  | no       |
-| `region`            | AWS region where the resources will be deployed    | `string`      | `us-east-1`  | no       |
 | `sonarqube_version` | Version of SonarQube to deploy                     | `string`      | `latest`     | no       |
 | `vpc_id`            | VPC ID for the SonarQube deployment                | `string`      | N/A          | yes      |
 | `subnet_ids`        | List of subnet IDs for SonarQube ECS tasks         | `list(string)`| N/A          | yes      |
@@ -49,6 +48,7 @@ module "sonarqube" {
   vpc_id            = "<your-vpc-id>"
   subnet_ids        = ["<your-subnet-id1>", "<your-subnet-id2>"]
 }
+```
 
 ### Custom Configuration
 
