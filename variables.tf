@@ -41,7 +41,19 @@ variable "public_subnets" {
 variable "sonar_db_server" {
   description = "The name of the SonarQube database server"
   type        = string
-  default     = "sonarqubepgsql"
+  default     = "sonardbserver"
+}
+
+variable "sonar_db_instance_class" {
+  description = "The name of the SonarQube database server instance class"
+  type        = string
+  default     = "db.t4g.micro"
+}
+
+variable "sonar_db_storage_type" {
+  description = "The name of the SonarQube database server storage type"
+  type        = string
+  default     = "gp2"
 }
 
 variable "sonar_db_name" {
