@@ -97,14 +97,45 @@ resource "aws_db_instance" "sonarqube" {
   password                = "${aws_secretsmanager_secret_version.sonardb_credentials.arn}:password::"
   publicly_accessible     = false
   db_subnet_group_name    = var.database_subnet_group_name
-  vpc_security_group_ids  = [aws_security_group.pgsql_sg.id]
+  vpc_security_group_ids  = [aws_security_group.sonarqube_rds_sg.id]
   multi_az                = false
   storage_encrypted       = true
-  kms_key_id              = aws_kms_key.rds_key.arn
+  kms_key_id              = aws_kms_key.sonarqube.arn
   backup_retention_period = 7
   skip_final_snapshot     = true
   deletion_protection     = true
   tags                    = var.tags
+}
+
+# KMS Key for RDS encryption at rest
+resource "aws_kms_key" "sonarqube" {
+  description         = "KMS key for RDS encryption"
+  enable_key_rotation = true
+  tags                = var.tags
+}
+
+# PGSQL Security Group
+resource "aws_security_group" "sonarqube_rds_sg" {
+  name        = "${var.name}rdssg"
+  description = "Security group for RDS instance"
+  vpc_id      = var.vpc_id
+
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = var.tags
 }
 
 ################################################################################
