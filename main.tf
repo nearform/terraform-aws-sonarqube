@@ -342,7 +342,7 @@ resource "aws_security_group" "sonarqube_ecs_sg" {
     from_port       = var.sonar_port
     to_port         = var.sonar_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.sonarqube_alb_sg.id]
   }
 }
 
@@ -354,14 +354,14 @@ resource "aws_lb" "alb" {
   internal                   = false
   load_balancer_type         = "application"
   subnets                    = var.public_subnets
-  security_groups            = [aws_security_group.alb_sg.id]
+  security_groups            = [aws_security_group.sonarqube_alb_sg.id]
   enable_deletion_protection = true
   drop_invalid_header_fields = true
   tags                       = var.tags
 }
 
 # ALB Security Group
-resource "aws_security_group" "alb_sg" {
+resource "aws_security_group" "sonarqube_alb_sg" {
   name        = "${var.name}albsg"
   description = "Security group for ALB"
   vpc_id      = var.vpc_id
@@ -418,7 +418,7 @@ resource "aws_lb_target_group" "sonarqube" {
 }
 
 # ALB Listener
-resource "aws_lb_listener" "backend_alb_http_listener" {
+resource "aws_lb_listener" "sonarqube_http_listener" {
   load_balancer_arn = aws_lb.alb.arn
   port              = "80"
   protocol          = "HTTP"
