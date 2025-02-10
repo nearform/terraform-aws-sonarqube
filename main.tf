@@ -380,7 +380,7 @@ resource "aws_security_group" "sonarqube_ecs_sg" {
 ################################################################################
 # Application Load Balancer
 ################################################################################
-resource "aws_lb" "alb" {
+resource "aws_lb" "sonarqube" {
   name                       = "${var.name}alb"
   internal                   = false
   load_balancer_type         = "application"
@@ -450,7 +450,7 @@ resource "aws_lb_target_group" "sonarqube" {
 
 # ALB Listener
 resource "aws_lb_listener" "sonarqube_http_listener" {
-  load_balancer_arn = aws_lb.alb.arn
+  load_balancer_arn = aws_lb.sonarqube.arn
   port              = "80"
   protocol          = "HTTP"
   tags              = var.tags
