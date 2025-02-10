@@ -15,23 +15,30 @@ A Terraform module for deploying SonarQube on AWS as a containerized service. Th
 
 ## Inputs
 
-| Name               | Description                                        | Type          | Default      | Required |
-|--------------------|----------------------------------------------------|---------------|--------------|----------|
-| `instance_type`    | EC2 instance type for SonarQube ECS task           | `string`      | `t2.medium`  | no       |
-| `sonarqube_version` | Version of SonarQube to deploy                     | `string`      | `latest`     | no       |
-| `vpc_id`            | VPC ID for the SonarQube deployment                | `string`      | N/A          | yes      |
-| `subnet_ids`        | List of subnet IDs for SonarQube ECS tasks         | `list(string)`| N/A          | yes      |
-| `security_group_ids`| List of security group IDs to attach to SonarQube  | `list(string)`| `[]`         | no       |
-| `tags`              | Tags to assign to the created resources            | `map(string)` | `{}`         | no       |
+| Name                      | Description                                             | Type          | Default         | Required |
+|---------------------------|---------------------------------------------------------|---------------|-----------------|----------|
+| `name`                    | Name to be used on all the resources as an identifier   | `string`      | `"sonarqube"`   | no       |
+| `tags`                    | A map of tags to add to all resources                   | `map(string)` | `{}`            | no       |
+| `vpc_id`                  | ID of the VPC                                           | `string`      | N/A             | yes      |
+| `database_subnets`        | List of IDs of database subnets                         | `list(string)`| N/A             | yes      |
+| `database_subnet_group_name` | Name of database subnet group                      | `string`      | N/A             | yes      |
+| `private_subnets`         | List of IDs of private subnets                          | `list(string)`| N/A             | yes      |
+| `public_subnets`          | List of IDs of public subnets                           | `list(string)`| N/A             | yes      |
+| `sonar_db_server`         | The name of the SonarQube database server              | `string`      | `"sonardbserver"` | no       |
+| `sonar_db_instance_class` | The SonarQube database server instance class           | `string`      | `"db.t4g.micro"` | no       |
+| `sonar_db_storage_type`   | The SonarQube database server storage type             | `string`      | `"gp2"`         | no       |
+| `sonar_db_name`           | The name of the SonarQube database                     | `string`      | `"sonar"`       | no       |
+| `sonar_db_user`           | The username for the SonarQube database                | `string`      | `"sonar"`       | no       |
+| `sonar_port`              | The port on which SonarQube will run                   | `number`      | `9000`          | no       |
+| `sonar_container_name`    | The name of the SonarQube container                    | `string`      | `"sonarqube"`   | no       |
 
 ## Outputs
 
 | Name               | Description                                         |
 |--------------------|-----------------------------------------------------|
-| `sonarqube_url`     | The public URL to access SonarQube once deployed.   |
-| `sonarqube_ip`      | The public IP address of the SonarQube instance.    |
-| `ecs_cluster_name`  | The name of the ECS cluster where SonarQube is running. |
-| `load_balancer_dns` | The DNS name of the load balancer used for SonarQube. |
+| `sonarqube_cluster_arn`  | The ARN of the ECS cluster where SonarQube is running |
+| `sonarqube_cluster_id`  | The ID of the ECS cluster where SonarQube is running |
+| `sonarqube_cluster_name`  | The name of the ECS cluster where SonarQube is running |
 
 ## Examples
 
