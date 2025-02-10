@@ -204,7 +204,7 @@ resource "aws_ecs_task_definition" "sonarqube" {
         { name = "SONAR_JDBC_URL", value = "jdbc:postgresql://${aws_db_instance.sonarqube.endpoint}/${var.sonar_db_name}" },
         { name = "SONAR_JDBC_USERNAME", value = var.sonar_db_user },
         { name = "SONAR_SEARCH_JAVAADDITIONALOPTS", value = "-Dnode.store.allow_mmap=false,-Ddiscovery.type=single-node" },
-        { name = "SONAR_WEB_CONTEXT", value = "/sonar" },
+        { name = "SONAR_WEB_CONTEXT", value = "/" },
         { name = "SONAR_WEB_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=web" },
         { name = "SONAR_CE_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=ce" }
       ]
