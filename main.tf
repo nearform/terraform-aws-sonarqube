@@ -40,40 +40,15 @@ resource "null_resource" "sonar_image_pull_tag_push" {
   }
 }
 
+
 ################################################################################
-# RDS instance
+# RDS credentials
 ################################################################################
 resource "random_password" "sonarqube_rds_password" {
   length  = 16
   special = false
 }
 
-resource "aws_db_instance" "sonarqube" {
-  identifier              = var.sonar_db_server
-  allocated_storage       = 20
-  max_allocated_storage   = 0
-  storage_type            = var.sonar_db_storage_type
-  instance_class          = var.sonar_db_instance_class
-  engine                  = "postgres"
-  engine_version          = "16"
-  db_name                 = var.sonar_db_name
-  username                = var.sonar_db_user
-  password                = random_password.sonarqube_rds_password.result
-  publicly_accessible     = false
-  db_subnet_group_name    = var.database_subnet_group_name
-  vpc_security_group_ids  = [aws_security_group.pgsql_sg.id]
-  multi_az                = false
-  storage_encrypted       = true
-  kms_key_id              = aws_kms_key.rds_key.arn
-  backup_retention_period = 7
-  skip_final_snapshot     = true
-  deletion_protection     = true
-  tags                    = var.tags
-}
-
-################################################################################
-# RDS credentials
-################################################################################
 locals {
   sonardb_connection_string = format(
     "postgresql://%s:%s@%s/%s?sslmode=require",
@@ -104,6 +79,32 @@ resource "aws_secretsmanager_secret_version" "sonardb_credentials" {
   "dbConnectionString": "${local.sonardb_connection_string}"
 }
 EOF
+}
+
+################################################################################
+# RDS instance
+################################################################################
+resource "aws_db_instance" "sonarqube" {
+  identifier              = var.sonar_db_server
+  allocated_storage       = 20
+  max_allocated_storage   = 0
+  storage_type            = var.sonar_db_storage_type
+  instance_class          = var.sonar_db_instance_class
+  engine                  = "postgres"
+  engine_version          = "16"
+  db_name                 = var.sonar_db_name
+  username                = var.sonar_db_user
+  password                = "${aws_secretsmanager_secret_version.sonardb_credentials.arn}:password::"
+  publicly_accessible     = false
+  db_subnet_group_name    = var.database_subnet_group_name
+  vpc_security_group_ids  = [aws_security_group.pgsql_sg.id]
+  multi_az                = false
+  storage_encrypted       = true
+  kms_key_id              = aws_kms_key.rds_key.arn
+  backup_retention_period = 7
+  skip_final_snapshot     = true
+  deletion_protection     = true
+  tags                    = var.tags
 }
 
 ################################################################################
