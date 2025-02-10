@@ -305,7 +305,7 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
 ################################################################################
 resource "aws_ecs_service" "sonarqube" {
   name                   = var.name
-  cluster                = aws_ecs_cluster.backend_ecs_cluster.id
+  cluster                = aws_ecs_cluster.sonarqube.id
   task_definition        = aws_ecs_task_definition.sonarqube.arn
   desired_count          = 1
   launch_type            = "FARGATE"
@@ -315,11 +315,6 @@ resource "aws_ecs_service" "sonarqube" {
     subnets          = var.private_subnets
     security_groups  = [aws_security_group.sonarqube_ecs_sg.id]
     assign_public_ip = false
-  }
-  load_balancer {
-    target_group_arn = aws_lb_target_group.sonarqube.arn
-    container_name   = var.sonar_container_name
-    container_port   = var.sonar_port
   }
 }
 
