@@ -79,3 +79,8 @@ variable "sonar_container_name" {
   type        = string
   default     = "sonarqube"
 }
+
+variable "sonar_image_tag" {
+  description = "The Docker Hub tag of the SonarQube image to deploy"
+  type        = string
+}

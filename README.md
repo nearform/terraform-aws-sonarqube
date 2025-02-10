@@ -11,6 +11,7 @@ A Terraform module for deploying SonarQube on AWS as a containerized service. Th
 ## Requirements
 
 - Terraform v1.9
+- Docker CLI
 - AWS account with necessary IAM permissions
 
 ## Inputs
@@ -19,9 +20,10 @@ A Terraform module for deploying SonarQube on AWS as a containerized service. Th
 |---------------------------|---------------------------------------------------------|---------------|-----------------|----------|
 | `name`                    | Name to be used on all the resources as an identifier   | `string`      | `"sonarqube"`   | no       |
 | `tags`                    | A map of tags to add to all resources                   | `map(string)` | `{}`            | no       |
+| `sonar_image_tag`         | The Docker Hub tag of the SonarQube image to deploy     | `string`      | N/A             | yes      |
 | `vpc_id`                  | ID of the VPC                                           | `string`      | N/A             | yes      |
 | `database_subnets`        | List of IDs of database subnets                         | `list(string)`| N/A             | yes      |
-| `database_subnet_group_name` | Name of database subnet group                      | `string`      | N/A             | yes      |
+| `database_subnet_group_name` | Name of database subnet group                        | `string`      | N/A             | yes      |
 | `private_subnets`         | List of IDs of private subnets                          | `list(string)`| N/A             | yes      |
 | `public_subnets`          | List of IDs of public subnets                           | `list(string)`| N/A             | yes      |
 | `sonar_db_server`         | The name of the SonarQube database server              | `string`      | `"sonardbserver"` | no       |

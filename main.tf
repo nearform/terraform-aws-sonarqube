@@ -14,7 +14,7 @@ locals {
 ################################################################################
 # Elastic Container Registry
 ################################################################################
-resource "aws_ecr_repository" "sonarqube_ecr" {
+resource "aws_ecr_repository" "sonarqube" {
   name                 = var.name
   image_tag_mutability = "IMMUTABLE"
   tags                 = var.tags
@@ -23,6 +23,20 @@ resource "aws_ecr_repository" "sonarqube_ecr" {
   }
   encryption_configuration {
     encryption_type = "KMS"
+  }
+}
+
+# Authenticate to ECR, pull the public image from Docker Hub, tag it, and push to ECR
+resource "null_resource" "sonar_image_pull_tag_push" {
+  depends_on = [aws_ecr_repository.sonarqube]
+
+  provisioner "local-exec" {
+    command = <<EOT
+      aws ecr get-login-password --region ${local.region} | docker login --username AWS --password-stdin ${aws_ecr_repository.sonarqube.repository_url}
+      docker pull sonarqube:${var.sonar_image_tag}
+      docker tag sonarqube:${var.sonar_image_tag} ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}
+      docker push ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}
+    EOT
   }
 }
 
@@ -166,7 +180,7 @@ resource "aws_ecs_task_definition" "sonarqube" {
   container_definitions = jsonencode([
     {
       name  = var.sonar_container_name,
-      image = "${aws_ecr_repository.sonarqube_ecr.repository_url}:10.7.0-community",
+      image = "${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}",
       portMappings = [
         {
           containerPort = 9000

@@ -31,6 +31,7 @@ module "vpc" {
 
 module "sonarqube" {
   source                     = "../"
+  sonar_image_tag            = "10.7.0-community"
   vpc_id                     = module.vpc.vpc_id
   database_subnets           = module.vpc.database_subnets
   private_subnets            = module.vpc.private_subnets
