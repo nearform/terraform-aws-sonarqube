@@ -34,8 +34,7 @@ module "vpc" {
 }
 
 module "sonarqube" {
-  # source                           = "github.com/nearform/terraform-aws-sonarqube"
-  source = "../terraform-aws-sonarqube/"
+  source = "../"
   vpc_id                           = module.vpc.vpc_id
   database_subnets                 = module.vpc.database_subnets
   private_subnets                  = module.vpc.private_subnets
