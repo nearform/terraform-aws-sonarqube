@@ -114,7 +114,7 @@ resource "aws_kms_key" "sonarqube" {
   tags                = var.tags
 }
 
-# PGSQL Security Group
+# RDS Security Group
 resource "aws_security_group" "sonarqube_rds_sg" {
   name        = "${var.name}rdssg"
   description = "Security group for RDS instance"
