@@ -248,6 +248,58 @@ resource "aws_ecs_task_definition" "sonarqube" {
   }
 }
 
+# IAM Role for ECS Task Exec Role
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "${var.name}ecstaskexecrole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" : "${local.account_id}"
+          }
+        }
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+        Effect = "Allow"
+      }
+    ]
+  })
+}
+
+# Attach policy to the IAM role
+resource "aws_iam_role_policy" "ecs_task_policy" {
+  name = "${var.name}ecstaskpolicy"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 ################################################################################
 # Fargate service
 ################################################################################
