@@ -14,8 +14,8 @@ This Terraform module deploys a **SonarQube container** in an **AWS Fargate clus
 - **Amazon CloudWatch Log Group** – Captures logs for basic monitoring and troubleshooting.
 - **Private Deployment** – The entire infrastructure is **deployed in a private network**, with external access strictly routed through the **Application Load Balancer (ALB)**.
 
-This setup ensures a **scalable, cost-effective, and secure** SonarQube deployment in AWS. 🚀
-∫∫
+This setup ensures a **scalable, cost-effective, and secure** SonarQube deployment in AWS.
+
 ## Requirements
 
 - Terraform v1.9
@@ -60,7 +60,7 @@ The following example deploys SonarQube in AWS using the Terraform module.
 
 ```hcl
 module "sonarqube" {
-  source = "github.com/your-org/terraform-aws-sonarqube"
+  source = "github.com/nearform/terraform-aws-sonarqube"
 
   # General Configuration
   name  = "sonarqube"
