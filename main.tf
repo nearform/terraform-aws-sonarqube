@@ -173,46 +173,6 @@ resource "aws_ecs_service" "sonarqube" {
   }
 }
 
-# resource "aws_lb_target_group" "sonarqube" {
-#   name        = var.name
-#   port        = var.sonar_port
-#   protocol    = "HTTP"
-#   vpc_id      = var.vpc_id
-#   target_type = "ip"
-#   tags        = var.tags
-#   health_check {
-#     path                = "/sonar/api/system/status"
-#     interval            = 30
-#     timeout             = 5
-#     healthy_threshold   = 5
-#     unhealthy_threshold = 2
-#   }
-#   depends_on = [aws_ecs_task_definition.sonarqube]
-# }
-
-# resource "aws_lb_listener_rule" "sonarqube" {
-#   listener_arn = aws_lb_listener.backend_alb_https_listener.arn
-#   priority     = 100
-#   tags         = merge(var.tags, { "Name" = "SonarQube" })
-#   action {
-#     type = "forward"
-#     forward {
-#       target_group {
-#         arn = aws_lb_target_group.sonarqube[0].arn
-#       }
-#       stickiness {
-#         duration = 600
-#         enabled  = true
-#       }
-#     }
-#   }
-#   condition {
-#     path_pattern {
-#       values = ["/sonar/*"]
-#     }
-#   }
-# }
-
 resource "aws_security_group" "sonarqube_ecs_sg" {
   name        = "${var.name}ecssg"
   description = "Security group for SonarQube ECS instance"
