@@ -139,6 +139,11 @@ resource "aws_efs_file_system" "sonarqube_extensions" {
   tags      = merge(var.tags, { "Name" = "SonarQube Extensions" })
 }
 
+resource "aws_efs_file_system" "sonarqube_logs" {
+  encrypted = false
+  tags      = merge(var.tags, { "Name" = "SonarQube Logs" })
+}
+
 resource "aws_efs_mount_target" "sonarqube_data" {
   file_system_id  = aws_efs_file_system.sonarqube_data.id
   subnet_id       = var.private_subnets[0]
@@ -151,9 +156,12 @@ resource "aws_efs_mount_target" "sonarqube_extensions" {
   security_groups = [aws_security_group.sonarqube_efs_sg.id]
 }
 
-################################################################################
-# EFS security groups
-################################################################################
+resource "aws_efs_mount_target" "sonarqube_logs" {
+  file_system_id  = aws_efs_file_system.sonarqube_logs.id
+  subnet_id       = var.private_subnets[0]
+  security_groups = [aws_security_group.sonarqube_efs_sg.id]
+}
+
 resource "aws_security_group" "sonarqube_efs_sg" {
   name        = "${var.name}efssg"
   description = "Security group for SonarQube EFS mount targets"
@@ -175,16 +183,14 @@ resource "aws_security_group" "sonarqube_efs_sg" {
 }
 
 ################################################################################
-# Fargate cluster
+# SonarQube Fargate cluster
 ################################################################################
 resource "aws_ecs_cluster" "sonarqube" {
   name = var.name
   tags = var.tags
 }
 
-################################################################################
-# Fargate task definition
-################################################################################
+# SonarQube task definition
 resource "aws_ecs_task_definition" "sonarqube" {
   family                   = var.name
   network_mode             = "awsvpc"
@@ -217,6 +223,11 @@ resource "aws_ecs_task_definition" "sonarqube" {
         {
           sourceVolume  = "sonar-extensions"
           containerPath = "/opt/sonarqube/extensions"
+          readOnly      = false
+        },
+        {
+          sourceVolume  = "sonar-logs"
+          containerPath = "/opt/sonarqube/logs"
           readOnly      = false
         }
       ],
@@ -319,9 +330,7 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
   })
 }
 
-################################################################################
-# Fargate service
-################################################################################
+# SonarQube service
 resource "aws_ecs_service" "sonarqube" {
   name                   = var.name
   cluster                = aws_ecs_cluster.sonarqube.id
@@ -342,9 +351,8 @@ resource "aws_ecs_service" "sonarqube" {
   }
 }
 
-################################################################################
-# Fargate security groups
-################################################################################
+
+# SonarQube security groups
 resource "aws_security_group" "sonarqube_ecs_sg" {
   name        = "${var.name}ecssg"
   description = "Security group for SonarQube ECS instance"
