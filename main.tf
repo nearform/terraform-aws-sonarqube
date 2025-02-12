@@ -107,9 +107,10 @@ resource "random_password" "sonarqube_rds_password" {
 }
 
 resource "aws_secretsmanager_secret" "sonarqube_db_credentials" {
-  name        = "${var.name}-db-credentials"
-  description = "SonarQube Database Credentials"
-  tags        = var.tags
+  name                    = "${var.name}-db-credentials"
+  description             = "SonarQube Database Credentials"
+  recovery_window_in_days = 0
+  tags                    = var.tags
 }
 
 resource "aws_secretsmanager_secret_version" "sonarqube_db_credentials" {
@@ -251,7 +252,7 @@ resource "aws_ecs_task_definition" "sonarqube" {
         # { name = "SONAR_CE_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=ce" }
       ]
       secrets = [
-        { name = "SONAR_JDBC_PASSWORD", valueFrom = random_password.sonarqube_rds_password.result },
+        { name = "SONAR_JDBC_PASSWORD", valueFrom = "${aws_secretsmanager_secret_version.sonarqube_db_credentials.arn}:password::" },
       ],
       logConfiguration = {
         logDriver = "awslogs"
