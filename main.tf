@@ -40,47 +40,6 @@ resource "null_resource" "sonar_image_pull_tag_push" {
   }
 }
 
-
-################################################################################
-# RDS credentials
-################################################################################
-resource "random_password" "sonarqube_rds_password" {
-  length  = 16
-  special = false
-}
-
-locals {
-  sonardb_connection_string = format(
-    "postgresql://%s:%s@%s/%s?sslmode=require",
-    aws_db_instance.sonarqube.username,
-    random_password.sonarqube_rds_password.result,
-    aws_db_instance.sonarqube.endpoint,
-    aws_db_instance.sonarqube.db_name
-  )
-}
-
-resource "aws_secretsmanager_secret" "sonardb_credentials" {
-  name        = "sonardb-credentials"
-  description = "SonarQube Database Credentials"
-  tags        = var.tags
-}
-
-resource "aws_secretsmanager_secret_version" "sonardb_credentials" {
-  secret_id     = aws_secretsmanager_secret.sonardb_credentials.id
-  secret_string = <<EOF
-{
-  "username": "${aws_db_instance.sonarqube.username}",
-  "password": "${random_password.sonarqube_rds_password.result}",
-  "engine": "${aws_db_instance.sonarqube.engine}",
-  "host": "${aws_db_instance.sonarqube.address}",
-  "port": ${aws_db_instance.sonarqube.port},
-  "dbName": "${aws_db_instance.sonarqube.db_name}",
-  "dbServerIdentifier": "${aws_db_instance.sonarqube.id}",
-  "dbConnectionString": "${local.sonardb_connection_string}"
-}
-EOF
-}
-
 ################################################################################
 # RDS instance
 ################################################################################
@@ -94,7 +53,7 @@ resource "aws_db_instance" "sonarqube" {
   engine_version          = "16"
   db_name                 = var.sonar_db_name
   username                = var.sonar_db_user
-  password                = "${aws_secretsmanager_secret_version.sonardb_credentials.arn}:password::"
+  password                = random_password.sonarqube_rds_password.result
   publicly_accessible     = false
   db_subnet_group_name    = var.database_subnet_group_name
   vpc_security_group_ids  = [aws_security_group.sonarqube_rds_sg.id]
@@ -136,6 +95,35 @@ resource "aws_security_group" "sonarqube_rds_sg" {
   }
 
   tags = var.tags
+}
+
+################################################################################
+# RDS credentials
+################################################################################
+resource "random_password" "sonarqube_rds_password" {
+  length  = 16
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "sonardb_credentials" {
+  name        = "sonardb-credentials"
+  description = "SonarQube Database Credentials"
+  tags        = var.tags
+}
+
+resource "aws_secretsmanager_secret_version" "sonardb_credentials" {
+  secret_id     = aws_secretsmanager_secret.sonardb_credentials.id
+  secret_string = <<EOF
+{
+  "username": "${aws_db_instance.sonarqube.username}",
+  "password": "${random_password.sonarqube_rds_password.result}",
+  "engine": "${aws_db_instance.sonarqube.engine}",
+  "host": "${aws_db_instance.sonarqube.address}",
+  "port": ${aws_db_instance.sonarqube.port},
+  "dbName": "${aws_db_instance.sonarqube.db_name}",
+  "dbServerIdentifier": "${aws_db_instance.sonarqube.id}"
+}
+EOF
 }
 
 ################################################################################
@@ -237,11 +225,11 @@ resource "aws_ecs_task_definition" "sonarqube" {
         { name = "SONAR_JDBC_USERNAME", value = var.sonar_db_user },
         { name = "SONAR_SEARCH_JAVAADDITIONALOPTS", value = "-Dnode.store.allow_mmap=false,-Ddiscovery.type=single-node" },
         { name = "SONAR_WEB_CONTEXT", value = "/" },
-        { name = "SONAR_WEB_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=web" },
-        { name = "SONAR_CE_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=ce" }
+        # { name = "SONAR_WEB_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=web" },
+        # { name = "SONAR_CE_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=ce" }
       ]
       secrets = [
-        { name = "SONAR_JDBC_PASSWORD", valueFrom = "${aws_secretsmanager_secret_version.sonardb_credentials.arn}:password::" },
+        { name = "SONAR_JDBC_PASSWORD", valueFrom = random_password.sonarqube_rds_password.result },
       ],
       logConfiguration = {
         logDriver = "awslogs"
