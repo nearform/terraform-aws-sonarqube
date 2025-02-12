@@ -329,6 +329,7 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
     Statement = [
       {
         Action = [
+          "ssm:GetParameters",
           "secretsmanager:GetSecretValue",
           "ssmmessages:CreateControlChannel",
           "ssmmessages:CreateDataChannel",
