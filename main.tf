@@ -22,7 +22,7 @@ resource "aws_ecr_repository" "sonarqube" {
     scan_on_push = true
   }
   encryption_configuration {
-    encryption_type = "KMS"
+    encryption_type = "AES256"
   }
 }
 
@@ -106,14 +106,14 @@ resource "random_password" "sonarqube_rds_password" {
   special = false
 }
 
-resource "aws_secretsmanager_secret" "sonardb_credentials" {
-  name_prefix = "sonardb-credentials"
+resource "aws_secretsmanager_secret" "sonarqube_db_credentials" {
+  name        = "${var.name}-db-credentials"
   description = "SonarQube Database Credentials"
   tags        = var.tags
 }
 
-resource "aws_secretsmanager_secret_version" "sonardb_credentials" {
-  secret_id     = aws_secretsmanager_secret.sonardb_credentials.id
+resource "aws_secretsmanager_secret_version" "sonarqube_db_credentials" {
+  secret_id     = aws_secretsmanager_secret.sonarqube_db_credentials.id
   secret_string = <<EOF
 {
   "username": "${aws_db_instance.sonarqube.username}",
