@@ -21,6 +21,7 @@ This setup ensures a **scalable, cost-effective, and secure** SonarQube deployme
 - Terraform v1.9
 - Docker CLI
 - AWS account with necessary IAM permissions
+- **Pre-existing networking infrastructure:** This module requires that the VPC, subnets, and networking resources are deployed beforehand.
 
 ## Inputs
 
