@@ -107,7 +107,7 @@ resource "random_password" "sonarqube_rds_password" {
 }
 
 resource "aws_secretsmanager_secret" "sonardb_credentials" {
-  name        = "sonardb-credentials"
+  name_prefix = "sonardb-credentials"
   description = "SonarQube Database Credentials"
   tags        = var.tags
 }
