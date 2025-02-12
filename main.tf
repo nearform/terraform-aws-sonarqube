@@ -33,9 +33,10 @@ resource "null_resource" "sonar_image_pull_tag_push" {
   provisioner "local-exec" {
     command = <<EOT
       aws ecr get-login-password --region ${local.region} | docker login --username AWS --password-stdin ${aws_ecr_repository.sonarqube.repository_url}
-      docker pull sonarqube:${var.sonar_image_tag}
+      docker pull sonarqube:${var.sonar_image_tag} --platform=linux/arm64
       docker tag sonarqube:${var.sonar_image_tag} ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}
-      docker push ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}
+      docker push ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag} --platform=linux/arm64
+      docker rmi sonarqube:${var.sonar_image_tag} ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}
     EOT
   }
 }
