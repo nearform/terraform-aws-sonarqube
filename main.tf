@@ -276,6 +276,14 @@ resource "aws_ecs_task_definition" "sonarqube" {
       transit_encryption = "ENABLED"
     }
   }
+  volume {
+    name = "sonar-logs"
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.sonarqube_logs.id
+      root_directory     = "/"
+      transit_encryption = "ENABLED"
+    }
+  }
 }
 
 # IAM Role for ECS Task Exec Role
