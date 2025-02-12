@@ -184,14 +184,24 @@ resource "aws_security_group" "sonarqube_efs_sg" {
 }
 
 ################################################################################
-# SonarQube Fargate cluster
+# Cloudwatch Log Group
 ################################################################################
+resource "aws_cloudwatch_log_group" "sonarqube_cloudwatch_lg" {
+  name              = "/aws/ecs/${var.name}"
+  retention_in_days = 90
+  tags              = var.tags
+}
+
+################################################################################
+# SonarQube deployment
+################################################################################
+# Fargate cluster
 resource "aws_ecs_cluster" "sonarqube" {
   name = var.name
   tags = var.tags
 }
 
-# SonarQube task definition
+# Fargate task definition
 resource "aws_ecs_task_definition" "sonarqube" {
   family                   = var.name
   network_mode             = "awsvpc"
@@ -247,7 +257,7 @@ resource "aws_ecs_task_definition" "sonarqube" {
         logDriver = "awslogs"
         options = {
           awslogs-create-group  = "true"
-          awslogs-group         = "/ecs/${var.name}"
+          awslogs-group         = aws_cloudwatch_log_group.sonarqube_cloudwatch_lg.name
           awslogs-region        = local.region
           awslogs-stream-prefix = "ecs"
         }
@@ -339,7 +349,7 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
   })
 }
 
-# SonarQube service
+# Fargate service
 resource "aws_ecs_service" "sonarqube" {
   name                   = var.name
   cluster                = aws_ecs_cluster.sonarqube.id
@@ -359,7 +369,6 @@ resource "aws_ecs_service" "sonarqube" {
     container_port   = var.sonar_port
   }
 }
-
 
 # SonarQube security groups
 resource "aws_security_group" "sonarqube_ecs_sg" {
@@ -469,13 +478,4 @@ resource "aws_lb_listener" "sonarqube_http_listener" {
       }
     }
   }
-}
-
-################################################################################
-# Cloudwatch Log Group
-################################################################################
-resource "aws_cloudwatch_log_group" "sonarqube_cloudwatch_lg" {
-  name              = "/aws/ecs/${var.name}"
-  retention_in_days = 90
-  tags              = var.tags
 }
