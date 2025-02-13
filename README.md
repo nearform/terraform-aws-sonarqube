@@ -21,41 +21,43 @@ This setup ensures a **scalable, cost-effective, and secure** SonarQube deployme
 - Terraform v1.9
 - Docker CLI
 - AWS account with necessary IAM permissions
+- **Pre-existing networking infrastructure:** This module requires that the VPC, subnets, and networking resources are deployed beforehand.
 
 ## Inputs
 
-| Name                      | Description                                             | Type          | Default         | Required |
-|---------------------------|---------------------------------------------------------|---------------|-----------------|----------|
-| `name`                    | Name to be used on all the resources as an identifier   | `string`      | `"sonarqube"`   | no       |
-| `tags`                    | A map of tags to add to all resources                   | `map(string)` | `{}`            | no       |
-| `sonar_image_tag`         | The Docker Hub tag of the SonarQube image to deploy     | `string`      | N/A             | yes      |
-| `vpc_id`                  | ID of the VPC                                           | `string`      | N/A             | yes      |
-| `database_subnets`        | List of IDs of database subnets                         | `list(string)`| N/A             | yes      |
-| `database_subnet_group_name` | Name of database subnet group                        | `string`      | N/A             | yes      |
-| `private_subnets`         | List of IDs of private subnets                          | `list(string)`| N/A             | yes      |
-| `public_subnets`          | List of IDs of public subnets                           | `list(string)`| N/A             | yes      |
-| `sonar_db_server`         | The name of the SonarQube database server              | `string`      | `"sonardbserver"` | no       |
-| `sonar_db_instance_class` | The SonarQube database server instance class           | `string`      | `"db.t4g.micro"` | no       |
-| `sonar_db_storage_type`   | The SonarQube database server storage type             | `string`      | `"gp2"`         | no       |
-| `sonar_db_name`           | The name of the SonarQube database                     | `string`      | `"sonar"`       | no       |
-| `sonar_db_user`           | The username for the SonarQube database                | `string`      | `"sonar"`       | no       |
-| `sonar_port`              | The port on which SonarQube will run                   | `number`      | `9000`          | no       |
-| `sonar_container_name`    | The name of the SonarQube container                    | `string`      | `"sonarqube"`   | no       |
+| Name                         | Description                                           | Type           | Default           | Required |
+| ---------------------------- | ----------------------------------------------------- | -------------- | ----------------- | -------- |
+| `name`                       | Name to be used on all the resources as an identifier | `string`       | `"sonarqube"`     | no       |
+| `tags`                       | A map of tags to add to all resources                 | `map(string)`  | `{}`              | no       |
+| `sonar_image_tag`            | The Docker Hub tag of the SonarQube image to deploy   | `string`       | N/A               | yes      |
+| `vpc_id`                     | ID of the VPC                                         | `string`       | N/A               | yes      |
+| `database_subnets`           | List of IDs of database subnets                       | `list(string)` | N/A               | yes      |
+| `database_subnet_group_name` | Name of database subnet group                         | `string`       | N/A               | yes      |
+| `private_subnets`            | List of IDs of private subnets                        | `list(string)` | N/A               | yes      |
+| `public_subnets`             | List of IDs of public subnets                         | `list(string)` | N/A               | yes      |
+| `sonar_db_server`            | The name of the SonarQube database server             | `string`       | `"sonardbserver"` | no       |
+| `sonar_db_instance_class`    | The SonarQube database server instance class          | `string`       | `"db.t4g.micro"`  | no       |
+| `sonar_db_storage_type`      | The SonarQube database server storage type            | `string`       | `"gp2"`           | no       |
+| `sonar_db_name`              | The name of the SonarQube database                    | `string`       | `"sonar"`         | no       |
+| `sonar_db_user`              | The username for the SonarQube database               | `string`       | `"sonar"`         | no       |
+| `sonar_port`                 | The port on which SonarQube will run                  | `number`       | `9000`            | no       |
+| `sonar_container_name`       | The name of the SonarQube container                   | `string`       | `"sonarqube"`     | no       |
 
 ## Outputs
 
-| Name                     | Description |
-|--------------------------|-------------|
-| `sonarqube_cluster_arn`  | The Amazon Resource Name (ARN) of the ECS cluster hosting SonarQube |
-| `sonarqube_cluster_id`   | The unique identifier (ID) of the ECS cluster hosting SonarQube |
-| `sonarqube_cluster_name` | The name assigned to the ECS cluster hosting SonarQube |
-| `alb_id`                 | The unique identifier (ID) of the Application Load Balancer (ALB) managing SonarQube traffic |
+| Name                     | Description                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| `sonarqube_cluster_arn`  | The Amazon Resource Name (ARN) of the ECS cluster hosting SonarQube                              |
+| `sonarqube_cluster_id`   | The unique identifier (ID) of the ECS cluster hosting SonarQube                                  |
+| `sonarqube_cluster_name` | The name assigned to the ECS cluster hosting SonarQube                                           |
+| `alb_id`                 | The unique identifier (ID) of the Application Load Balancer (ALB) managing SonarQube traffic     |
 | `alb_arn`                | The Amazon Resource Name (ARN) of the Application Load Balancer (ALB) managing SonarQube traffic |
-| `alb_dns_name`           | The publicly accessible DNS name of the Application Load Balancer (ALB) for SonarQube |
+| `alb_dns_name`           | The publicly accessible DNS name of the Application Load Balancer (ALB) for SonarQube            |
 
 ## Examples
 
 ### **Basic Usage**
+
 The following example deploys SonarQube in AWS using the Terraform module.
 
 ```hcl
@@ -119,3 +121,5 @@ We welcome contributions to improve this Terraform module! Here’s how you can 
 For larger changes or new features, please open an issue first to discuss the approach before starting work on it.
 
 Thanks for helping improve this project!
+
+[![banner](https://raw.githubusercontent.com/nearform/.github/refs/heads/master/assets/os-banner-green.svg)](https://www.nearform.com/contact/?utm_source=open-source&utm_medium=banner&utm_campaign=os-project-pages)

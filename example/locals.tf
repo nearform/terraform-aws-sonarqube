@@ -1,7 +1,7 @@
 locals {
   common_tags = {
     Project     = "sonarqube"
-    Environment = "${var.environment}"
+    Environment = "dev"
     ManagedBy   = "Terraform"
   }
 }

@@ -22,11 +22,7 @@ module "vpc" {
   create_database_internet_gateway_route = false
   create_database_nat_gateway_route      = false
   database_subnet_group_name             = "sonarqubedbsubnetgroup"
-  tags = {
-    Project     = "sonarqube"
-    ManagedBy   = "Terraform"
-    Environment = "dev"
-  }
+  tags                                   = local.common_tags
 }
 
 module "sonarqube" {
@@ -37,4 +33,5 @@ module "sonarqube" {
   private_subnets            = module.vpc.private_subnets
   public_subnets             = module.vpc.public_subnets
   database_subnet_group_name = module.vpc.database_subnet_group_name
+  tags                       = local.common_tags
 }

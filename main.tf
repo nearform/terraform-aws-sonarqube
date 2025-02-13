@@ -22,7 +22,7 @@ resource "aws_ecr_repository" "sonarqube" {
     scan_on_push = true
   }
   encryption_configuration {
-    encryption_type = "KMS"
+    encryption_type = "AES256"
   }
 }
 
@@ -33,52 +33,12 @@ resource "null_resource" "sonar_image_pull_tag_push" {
   provisioner "local-exec" {
     command = <<EOT
       aws ecr get-login-password --region ${local.region} | docker login --username AWS --password-stdin ${aws_ecr_repository.sonarqube.repository_url}
-      docker pull sonarqube:${var.sonar_image_tag}
+      docker pull sonarqube:${var.sonar_image_tag} --platform=linux/arm64
       docker tag sonarqube:${var.sonar_image_tag} ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}
-      docker push ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}
+      docker push ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag} --platform=linux/arm64
+      docker rmi sonarqube:${var.sonar_image_tag} ${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}
     EOT
   }
-}
-
-
-################################################################################
-# RDS credentials
-################################################################################
-resource "random_password" "sonarqube_rds_password" {
-  length  = 16
-  special = false
-}
-
-locals {
-  sonardb_connection_string = format(
-    "postgresql://%s:%s@%s/%s?sslmode=require",
-    aws_db_instance.sonarqube.username,
-    random_password.sonarqube_rds_password.result,
-    aws_db_instance.sonarqube.endpoint,
-    aws_db_instance.sonarqube.db_name
-  )
-}
-
-resource "aws_secretsmanager_secret" "sonardb_credentials" {
-  name        = "sonardb-credentials"
-  description = "SonarQube Database Credentials"
-  tags        = var.tags
-}
-
-resource "aws_secretsmanager_secret_version" "sonardb_credentials" {
-  secret_id     = aws_secretsmanager_secret.sonardb_credentials.id
-  secret_string = <<EOF
-{
-  "username": "${aws_db_instance.sonarqube.username}",
-  "password": "${random_password.sonarqube_rds_password.result}",
-  "engine": "${aws_db_instance.sonarqube.engine}",
-  "host": "${aws_db_instance.sonarqube.address}",
-  "port": ${aws_db_instance.sonarqube.port},
-  "dbName": "${aws_db_instance.sonarqube.db_name}",
-  "dbServerIdentifier": "${aws_db_instance.sonarqube.id}",
-  "dbConnectionString": "${local.sonardb_connection_string}"
-}
-EOF
 }
 
 ################################################################################
@@ -94,7 +54,7 @@ resource "aws_db_instance" "sonarqube" {
   engine_version          = "16"
   db_name                 = var.sonar_db_name
   username                = var.sonar_db_user
-  password                = "${aws_secretsmanager_secret_version.sonardb_credentials.arn}:password::"
+  password                = random_password.sonarqube_rds_password.result
   publicly_accessible     = false
   db_subnet_group_name    = var.database_subnet_group_name
   vpc_security_group_ids  = [aws_security_group.sonarqube_rds_sg.id]
@@ -139,6 +99,36 @@ resource "aws_security_group" "sonarqube_rds_sg" {
 }
 
 ################################################################################
+# RDS credentials
+################################################################################
+resource "random_password" "sonarqube_rds_password" {
+  length  = 16
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "sonarqube_db_credentials" {
+  name                    = "${var.name}-db-credentials"
+  description             = "SonarQube Database Credentials"
+  recovery_window_in_days = 0
+  tags                    = var.tags
+}
+
+resource "aws_secretsmanager_secret_version" "sonarqube_db_credentials" {
+  secret_id     = aws_secretsmanager_secret.sonarqube_db_credentials.id
+  secret_string = <<EOF
+{
+  "username": "${aws_db_instance.sonarqube.username}",
+  "password": "${random_password.sonarqube_rds_password.result}",
+  "engine": "${aws_db_instance.sonarqube.engine}",
+  "host": "${aws_db_instance.sonarqube.address}",
+  "port": ${aws_db_instance.sonarqube.port},
+  "dbName": "${aws_db_instance.sonarqube.db_name}",
+  "dbServerIdentifier": "${aws_db_instance.sonarqube.id}"
+}
+EOF
+}
+
+################################################################################
 # EFS volumes
 ################################################################################
 resource "aws_efs_file_system" "sonarqube_data" {
@@ -149,6 +139,11 @@ resource "aws_efs_file_system" "sonarqube_data" {
 resource "aws_efs_file_system" "sonarqube_extensions" {
   encrypted = false
   tags      = merge(var.tags, { "Name" = "SonarQube Extensions" })
+}
+
+resource "aws_efs_file_system" "sonarqube_logs" {
+  encrypted = false
+  tags      = merge(var.tags, { "Name" = "SonarQube Logs" })
 }
 
 resource "aws_efs_mount_target" "sonarqube_data" {
@@ -163,9 +158,12 @@ resource "aws_efs_mount_target" "sonarqube_extensions" {
   security_groups = [aws_security_group.sonarqube_efs_sg.id]
 }
 
-################################################################################
-# EFS security groups
-################################################################################
+resource "aws_efs_mount_target" "sonarqube_logs" {
+  file_system_id  = aws_efs_file_system.sonarqube_logs.id
+  subnet_id       = var.private_subnets[0]
+  security_groups = [aws_security_group.sonarqube_efs_sg.id]
+}
+
 resource "aws_security_group" "sonarqube_efs_sg" {
   name        = "${var.name}efssg"
   description = "Security group for SonarQube EFS mount targets"
@@ -187,16 +185,24 @@ resource "aws_security_group" "sonarqube_efs_sg" {
 }
 
 ################################################################################
-# Fargate cluster
+# Cloudwatch Log Group
 ################################################################################
+resource "aws_cloudwatch_log_group" "sonarqube_cloudwatch_lg" {
+  name              = "/aws/ecs/${var.name}"
+  retention_in_days = 90
+  tags              = var.tags
+}
+
+################################################################################
+# SonarQube deployment
+################################################################################
+# Fargate cluster
 resource "aws_ecs_cluster" "sonarqube" {
   name = var.name
   tags = var.tags
 }
 
-################################################################################
 # Fargate task definition
-################################################################################
 resource "aws_ecs_task_definition" "sonarqube" {
   family                   = var.name
   network_mode             = "awsvpc"
@@ -230,6 +236,11 @@ resource "aws_ecs_task_definition" "sonarqube" {
           sourceVolume  = "sonar-extensions"
           containerPath = "/opt/sonarqube/extensions"
           readOnly      = false
+        },
+        {
+          sourceVolume  = "sonar-logs"
+          containerPath = "/opt/sonarqube/logs"
+          readOnly      = false
         }
       ],
       environment = [
@@ -237,17 +248,17 @@ resource "aws_ecs_task_definition" "sonarqube" {
         { name = "SONAR_JDBC_USERNAME", value = var.sonar_db_user },
         { name = "SONAR_SEARCH_JAVAADDITIONALOPTS", value = "-Dnode.store.allow_mmap=false,-Ddiscovery.type=single-node" },
         { name = "SONAR_WEB_CONTEXT", value = "/" },
-        { name = "SONAR_WEB_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=web" },
-        { name = "SONAR_CE_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=ce" }
+        # { name = "SONAR_WEB_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=web" },
+        # { name = "SONAR_CE_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=ce" }
       ]
       secrets = [
-        { name = "SONAR_JDBC_PASSWORD", valueFrom = "${aws_secretsmanager_secret_version.sonardb_credentials.arn}:password::" },
+        { name = "SONAR_JDBC_PASSWORD", valueFrom = "${aws_secretsmanager_secret_version.sonarqube_db_credentials.arn}:password::" },
       ],
       logConfiguration = {
         logDriver = "awslogs"
         options = {
           awslogs-create-group  = "true"
-          awslogs-group         = "/ecs/${var.name}"
+          awslogs-group         = aws_cloudwatch_log_group.sonarqube_cloudwatch_lg.name
           awslogs-region        = local.region
           awslogs-stream-prefix = "ecs"
         }
@@ -273,6 +284,14 @@ resource "aws_ecs_task_definition" "sonarqube" {
     name = "sonar-extensions"
     efs_volume_configuration {
       file_system_id     = aws_efs_file_system.sonarqube_extensions.id
+      root_directory     = "/"
+      transit_encryption = "ENABLED"
+    }
+  }
+  volume {
+    name = "sonar-logs"
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.sonarqube_logs.id
       root_directory     = "/"
       transit_encryption = "ENABLED"
     }
@@ -311,6 +330,7 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
     Statement = [
       {
         Action = [
+          "ssm:GetParameters",
           "secretsmanager:GetSecretValue",
           "ssmmessages:CreateControlChannel",
           "ssmmessages:CreateDataChannel",
@@ -331,9 +351,7 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
   })
 }
 
-################################################################################
 # Fargate service
-################################################################################
 resource "aws_ecs_service" "sonarqube" {
   name                   = var.name
   cluster                = aws_ecs_cluster.sonarqube.id
@@ -354,9 +372,7 @@ resource "aws_ecs_service" "sonarqube" {
   }
 }
 
-################################################################################
-# Fargate security groups
-################################################################################
+# SonarQube security groups
 resource "aws_security_group" "sonarqube_ecs_sg" {
   name        = "${var.name}ecssg"
   description = "Security group for SonarQube ECS instance"
@@ -464,13 +480,4 @@ resource "aws_lb_listener" "sonarqube_http_listener" {
       }
     }
   }
-}
-
-################################################################################
-# Cloudwatch Log Group
-################################################################################
-resource "aws_cloudwatch_log_group" "sonarqube_cloudwatch_lg" {
-  name              = "/aws/ecs/${var.name}"
-  retention_in_days = 90
-  tags              = var.tags
 }
