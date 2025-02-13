@@ -217,6 +217,38 @@ resource "aws_ecs_task_definition" "sonarqube" {
   }
   container_definitions = jsonencode([
     {
+      name      = "init-container",
+      image     = "alpine:3.21",
+      essential = false,
+      command   = ["sh", "-c", "chmod g+w /mnt/sonarqube-*"],
+      mountPoints = [
+        {
+          sourceVolume  = "sonar-data"
+          containerPath = "/mnt/sonarqube-data"
+          readOnly      = false
+        },
+        {
+          sourceVolume  = "sonar-extensions"
+          containerPath = "/mnt/sonarqube-extensions"
+          readOnly      = false
+        },
+        {
+          sourceVolume  = "sonar-logs"
+          containerPath = "/mnt/sonarqube-logs"
+          readOnly      = false
+        }
+      ],
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-create-group  = "true"
+          awslogs-group         = aws_cloudwatch_log_group.sonarqube_cloudwatch_lg.name
+          awslogs-region        = local.region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+    },
+    {
       name  = var.sonar_container_name,
       image = "${aws_ecr_repository.sonarqube.repository_url}:${var.sonar_image_tag}",
       portMappings = [
