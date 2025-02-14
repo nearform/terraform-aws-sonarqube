@@ -1,16 +1,16 @@
 provider "aws" {
-  region = var.aws_region
+  region = local.region
 }
 
 module "vpc" {
   source                                 = "terraform-aws-modules/vpc/aws"
   version                                = "5.18.1"
-  name                                   = "sonarqubevpc"
-  cidr                                   = "10.101.0.0/16"
-  azs                                    = ["eu-west-1a", "eu-west-1b"]
-  database_subnets                       = ["10.101.21.0/24", "10.101.22.0/24"]
-  private_subnets                        = ["10.101.1.0/24", "10.101.2.0/24"]
-  public_subnets                         = ["10.101.101.0/24", "10.101.102.0/24"]
+  name                                   = "${local.name}vpc"
+  azs                                    = local.vnet_azs
+  cidr                                   = local.vnet_cidr
+  database_subnets                       = local.database_subnets
+  private_subnets                        = local.private_subnets
+  public_subnets                         = local.public_subnets
   create_private_nat_gateway_route       = true
   enable_nat_gateway                     = true
   single_nat_gateway                     = true
@@ -21,13 +21,14 @@ module "vpc" {
   create_database_subnet_route_table     = true
   create_database_internet_gateway_route = false
   create_database_nat_gateway_route      = false
-  database_subnet_group_name             = "sonarqubedbsubnetgroup"
+  database_subnet_group_name             = "${local.name}db"
   tags                                   = local.common_tags
 }
 
 module "sonarqube" {
   source                     = "../"
-  sonar_image_tag            = "10.7.0-community"
+  sonar_image_tag            = local.sonar_image_tag
+  sonar_port                 = local.sonar_port
   vpc_id                     = module.vpc.vpc_id
   database_subnets           = module.vpc.database_subnets
   private_subnets            = module.vpc.private_subnets
