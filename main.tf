@@ -123,7 +123,8 @@ resource "aws_secretsmanager_secret_version" "sonarqube_db_credentials" {
   "host": "${aws_db_instance.sonarqube.address}",
   "port": ${aws_db_instance.sonarqube.port},
   "dbName": "${aws_db_instance.sonarqube.db_name}",
-  "dbServerIdentifier": "${aws_db_instance.sonarqube.id}"
+  "dbServerIdentifier": "${aws_db_instance.sonarqube.id}",
+  "dbConnectionString": "jdbc:postgresql://${aws_db_instance.sonarqube.endpoint}/${var.sonar_db_name}"
 }
 EOF
 }
@@ -276,15 +277,15 @@ resource "aws_ecs_task_definition" "sonarqube" {
         }
       ],
       environment = [
-        { name = "SONAR_JDBC_URL", value = "jdbc:postgresql://${aws_db_instance.sonarqube.endpoint}/${var.sonar_db_name}" },
-        { name = "SONAR_JDBC_USERNAME", value = var.sonar_db_user },
         { name = "SONAR_SEARCH_JAVAADDITIONALOPTS", value = "-Dnode.store.allow_mmap=false,-Ddiscovery.type=single-node" },
         { name = "SONAR_WEB_CONTEXT", value = "/" },
-        # { name = "SONAR_WEB_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=web" },
-        # { name = "SONAR_CE_JAVAADDITIONALOPTS", value = "-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=ce" }
+        { name = "SONAR_ES_BOOTSTRAP_CHECKS_DISABLE", value = "true" },
+
       ]
       secrets = [
+        { name = "SONAR_JDBC_USERNAME", valueFrom = "${aws_secretsmanager_secret_version.sonarqube_db_credentials.arn}:username::" },
         { name = "SONAR_JDBC_PASSWORD", valueFrom = "${aws_secretsmanager_secret_version.sonarqube_db_credentials.arn}:password::" },
+        { name = "SONAR_JDBC_URL", valueFrom = "${aws_secretsmanager_secret_version.sonarqube_db_credentials.arn}:dbConnectionString::" },
       ],
       logConfiguration = {
         logDriver = "awslogs"
