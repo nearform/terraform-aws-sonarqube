@@ -26,7 +26,7 @@ module "vpc" {
 }
 
 module "sonarqube" {
-  source                     = "../"
+  source                     = "../../"
   sonar_image_tag            = local.sonar_image_tag
   sonar_port                 = local.sonar_port
   vpc_id                     = module.vpc.vpc_id
