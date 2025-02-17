@@ -15,7 +15,6 @@ defaults:
 jobs:
   terraform:
     name: Terraform Checks
-    if: github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
       contents: read
