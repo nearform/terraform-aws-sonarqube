@@ -7,10 +7,12 @@ Feature: Test AWS Elastic Container Registry (ECR)
 
     Scenario: Ensure images are scanned on push
         Given I have aws_ecr_repository defined
+        When it contains image_scanning_configuration
         Then it must contain scan_on_push
         And its value must be true
 
     Scenario: Ensure the encryption type used for the repository is AES256 
         Given I have aws_ecr_repository defined
+        When it contains encryption_configuration
         Then it must contain encryption_type
         And its value must be AES256
