@@ -132,4 +132,4 @@ jobs:
       - name: Run BDD tests
         run: |
           cd ${{ env.TF_WORK_DIR }}
-          terraform-compliance -f ${{ github.workspace }}/features -p tfplan
+          terraform-compliance -f ${{ github.workspace }}/features -p tfplan 2>&1 | grep -v -E 'DeprecationWarning|datetime|WARNING'
