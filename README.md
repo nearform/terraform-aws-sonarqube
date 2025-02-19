@@ -53,12 +53,12 @@ This setup ensures a **scalable, cost-effective, and secure** SonarQube deployme
 
 | Name                     | Description                                                                                      |
 | ------------------------ | ------------------------------------------------------------------------------------------------ |
-| `sonarqube_cluster_arn`   | The Amazon Resource Name (ARN) of the ECS cluster hosting SonarQube                              |
-| `sonarqube_cluster_id`    | The unique identifier (ID) of the ECS cluster hosting SonarQube                                  |
-| `sonarqube_cluster_name`  | The name assigned to the ECS cluster hosting SonarQube                                           |
-| `alb_arn`                 | The Amazon Resource Name (ARN) of the Application Load Balancer (ALB) managing SonarQube traffic |
-| `alb_id`                  | The unique identifier (ID) of the Application Load Balancer (ALB) managing SonarQube traffic     |
-| `alb_dns_name`            | The publicly accessible DNS name of the Application Load Balancer (ALB) for SonarQube            |
+| `sonarqube_cluster_arn`  | The Amazon Resource Name (ARN) of the ECS cluster hosting SonarQube                              |
+| `sonarqube_cluster_id`   | The unique identifier (ID) of the ECS cluster hosting SonarQube                                  |
+| `sonarqube_cluster_name` | The name assigned to the ECS cluster hosting SonarQube                                           |
+| `alb_arn`                | The Amazon Resource Name (ARN) of the Application Load Balancer (ALB) managing SonarQube traffic |
+| `alb_id`                 | The unique identifier (ID) of the Application Load Balancer (ALB) managing SonarQube traffic     |
+| `alb_dns_name`           | The publicly accessible DNS name of the Application Load Balancer (ALB) for SonarQube            |
 
 ## Enabling HTTPS Support
 
@@ -73,10 +73,12 @@ This Terraform module does **not** include HTTPS (TLS) support for the AWS Appli
 To introduce HTTPS support for your SonarQube deployment, follow these steps:
 
 1. **Assign a Custom Domain**
+
    - Ensure that your **AWS Application Load Balancer (ALB)** is associated with a **custom domain name** (e.g., `sonarqube.example.com`).
    - Update your **DNS provider** to point the domain to the **ALB DNS name**.
 
 2. **Generate or Import a TLS Certificate**
+
    - If using **AWS Certificate Manager (ACM)**, request or import an SSL certificate for your domain.
    - Alternatively, you can generate a **self-signed certificate** for internal use, though it’s recommended to use a certificate from a trusted CA for production environments.
 
