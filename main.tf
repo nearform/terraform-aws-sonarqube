@@ -188,7 +188,7 @@ resource "aws_security_group" "sonarqube_efs_sg" {
 ################################################################################
 resource "aws_cloudwatch_log_group" "sonarqube_cloudwatch_lg" {
   name              = "/aws/ecs/${var.name}"
-  retention_in_days = 90
+  retention_in_days = 7
   tags              = var.tags
 }
 
