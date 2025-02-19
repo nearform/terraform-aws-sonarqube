@@ -2,12 +2,10 @@
 # Commons
 ################################################################################
 data "aws_region" "current" {}
-data "aws_partition" "current" {}
 data "aws_caller_identity" "current" {}
 
 locals {
   account_id = data.aws_caller_identity.current.account_id
-  partition  = data.aws_partition.current.partition
   region     = data.aws_region.current.name
 }
 
@@ -190,7 +188,7 @@ resource "aws_security_group" "sonarqube_efs_sg" {
 ################################################################################
 resource "aws_cloudwatch_log_group" "sonarqube_cloudwatch_lg" {
   name              = "/aws/ecs/${var.name}"
-  retention_in_days = 90
+  retention_in_days = 7
   tags              = var.tags
 }
 
