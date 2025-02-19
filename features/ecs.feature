@@ -26,4 +26,4 @@ Feature: Test AWS ECS
         Given I have aws_ecs_task_definition defined
         When it contains volume
         Then it must contain name
-        And its value must must match the "^(sonar-data|sonar-extensions|sonar-logs)" regex
+        And its value must match the "^(sonar-data|sonar-extensions|sonar-logs)" regex
