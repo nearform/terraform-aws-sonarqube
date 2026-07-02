@@ -57,6 +57,7 @@ jobs:
       - name: Terraform Test (module compliance)
         id: test
         run: terraform -chdir=${{ env.TF_MODULE_DIR }} test -no-color
+        continue-on-error: true
 
       - name: Publish Results in PR comment
         uses: actions/github-script@v9.0.0
@@ -117,4 +118,8 @@ jobs:
 
       - name: Terraform fmt Status
         if: steps.fmt.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Test Status
+        if: steps.test.outcome == 'failure'
         run: exit 1
