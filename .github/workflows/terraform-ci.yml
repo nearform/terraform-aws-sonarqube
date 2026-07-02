@@ -41,7 +41,9 @@ jobs:
 
       - name: Terraform fmt
         id: fmt
-        run: terraform -chdir=${{ env.TF_EXAMPLE_DIR }} fmt -check
+        run: |
+          terraform -chdir=${{ env.TF_EXAMPLE_DIR }} fmt -check
+          terraform -chdir=${{ env.TF_MODULE_DIR }} fmt -check
         continue-on-error: true
 
       - name: Terraform Validate (example)

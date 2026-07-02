@@ -52,10 +52,10 @@ run "plan_and_verify_module" {
   }
 
   assert {
-    condition = length([
-      for volume in aws_ecs_task_definition.sonarqube.volume : volume.name
-      if can(regex("^(sonar-data|sonar-extensions|sonar-logs)$", volume.name))
-    ]) == 3
+    condition = alltrue([
+      for required_volume in ["sonar-data", "sonar-extensions", "sonar-logs"] :
+      contains([for volume in aws_ecs_task_definition.sonarqube.volume : volume.name], required_volume)
+    ])
     error_message = "ECS task definition must define sonar-data, sonar-extensions, and sonar-logs volumes."
   }
 
