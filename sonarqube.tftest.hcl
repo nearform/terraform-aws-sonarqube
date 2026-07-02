@@ -3,13 +3,19 @@
 # Terraform mocking — no AWS account or emulator required.
 
 mock_provider "aws" {
-  override_during = plan
-
   mock_resource "aws_kms_key" {
     defaults = {
       arn = "arn:aws:kms:eu-west-1:123456789012:key/sonarqube-test"
     }
   }
+}
+
+override_resource {
+  target = aws_kms_key.sonarqube
+  values = {
+    arn = "arn:aws:kms:eu-west-1:123456789012:key/sonarqube-test"
+  }
+  override_during = plan
 }
 
 variables {
