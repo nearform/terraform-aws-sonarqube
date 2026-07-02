@@ -33,7 +33,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4.0.1
         with:
-          terraform_version: "~1.10.0"
+          terraform_version: "1.14.5"
 
       - name: Terraform Init (example)
         id: init
