@@ -62,6 +62,9 @@ jobs:
       - name: Publish Results in PR comment
         uses: actions/github-script@v9.0.0
         if: github.event_name == 'pull_request'
+        env:
+          VALIDATE_OUTPUT: ${{ steps.validate.outputs.stdout }}
+          TEST_OUTPUT: ${{ steps.test.outputs.stdout }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -82,7 +85,7 @@ jobs:
             <details><summary>Validation Output</summary>
 
             \`\`\`\n
-            ${{ steps.validate.outputs.stdout }}
+            ${process.env.VALIDATE_OUTPUT}
             \`\`\`
 
             </details>
@@ -92,7 +95,7 @@ jobs:
             <details><summary>Test Output</summary>
 
             \`\`\`\n
-            ${{ steps.test.outputs.stdout }}
+            ${process.env.TEST_OUTPUT}
             \`\`\`
 
             </details>

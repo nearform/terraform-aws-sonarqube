@@ -2,13 +2,7 @@
 # Replaces terraform-compliance BDD features (features/*.feature) using native
 # Terraform mocking — no AWS account or emulator required.
 
-mock_provider "aws" {
-  mock_resource "aws_kms_key" {
-    defaults = {
-      arn = "arn:aws:kms:eu-west-1:123456789012:key/sonarqube-test"
-    }
-  }
-}
+mock_provider "aws" {}
 
 override_resource {
   target = aws_kms_key.sonarqube
